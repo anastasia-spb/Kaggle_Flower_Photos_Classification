@@ -4,16 +4,17 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-import torchvision
-from torchvision import datasets, models, transforms
-import matplotlib.pyplot as plt
-import time
-import os
+from torchvision import models
 import copy
-from torch.utils.data import random_split, DataLoader
+from torch.utils.data import DataLoader
 
 
-class ModelWrapper:
+class VggModelWrapper:
+    """
+    This class loads pretrained VGG11_bn model and
+    only update the final layer weights
+    """
+
     def __init__(self, num_classes, device):
         self.device = device
         self.num_classes = num_classes
@@ -24,20 +25,34 @@ class ModelWrapper:
         self.__initialize_vgg_model()
         self.__create_optimizer()
 
-    def __set_parameter_requires_grad(self, model):
-        for param in model.parameters():
+    def __set_parameter_requires_grad(self):
+        """
+        Since this class only performs feature extraction,
+        we shall set .requires_grad attribute of the parameters
+        in the model to False.
+        Gradients shall be computed only for the newly initialized layer.
+        """
+        for param in self.model.parameters():
             param.requires_grad = False
 
     def __initialize_vgg_model(self):
         # We only update the reshaped layer params
         self.model = models.vgg11_bn(pretrained=True)
-        self.__set_parameter_requires_grad(self.model)
+        self.__set_parameter_requires_grad()
         num_ftrs = self.model.classifier[6].in_features
         self.model.classifier[6] = nn.Linear(num_ftrs, self.num_classes)
-        self.input_size = 224  # @todo shall be available via some getter. VGG Property
+        self.input_size = 224  # VGG11 expects image of size (224, 224)
         self.model = self.model.to(self.device)
 
+    def get_expected_img_size(self):
+        return self.input_size
+
     def __create_optimizer(self):
+        """
+        Gather the parameters to be optimized/updated.
+        In feature extract method, we will only update the parameters
+        that we have just initialized.
+        """
         params_to_update = []
         for name, param in self.model.named_parameters():
             if param.requires_grad:
@@ -45,7 +60,6 @@ class ModelWrapper:
         self.optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
     def train(self, train_dataset, validation_dataset, save_model=False):
-        # Shuffle data both in train and validation sets
         dataloaders = {"train": DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True),
                        "val": DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=True)}
 
@@ -108,6 +122,8 @@ class ModelWrapper:
         if save_model:
             torch.save(self.model.state_dict(), './model_from_last_train.pth')
 
+        return val_acc_history
+
     def predict(self, torch_dataset, model_from_file=''):
         if model_from_file:
             self.model.load_state_dict(torch.load(model_from_file))
@@ -122,6 +138,7 @@ class ModelWrapper:
             softmax = torch.exp(scores).cpu()
             prob = list(softmax.detach().numpy())
             predictions = np.argmax(prob, axis=1)
+            # Store results
             submission_results.append(predictions)
             img_names_column.append(img_names)
 

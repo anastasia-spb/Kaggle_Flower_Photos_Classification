@@ -11,7 +11,7 @@ class ImageInfo:
     label: int
 
 
-class ImagesDataset(Dataset):
+class JpegDataset(Dataset):
     def __init__(self, images_info: List[ImageInfo], transform=None):
         super(Dataset, self).__init__()
         self.transform = transform
