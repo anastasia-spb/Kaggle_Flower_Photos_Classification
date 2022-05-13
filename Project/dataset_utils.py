@@ -45,8 +45,9 @@ def create_dataset(expected_img_size: int, root_dir: str, imgs_dir: str, sample_
         transforms.ToTensor(),
         PerImageNormalization()])
 
-    data_dir = os.path.join(root_dir, imgs_dir)
     categories_dirs_names = get_categories(root_dir, imgs_dir)
+    path_to_submission_template = os.path.join(root_dir, sample_submission_file)
+    test_images_paths = pd.read_csv(path_to_submission_template).Id.values
 
     if train:
         # Store all images paths and corresponding labels
@@ -54,9 +55,12 @@ def create_dataset(expected_img_size: int, root_dir: str, imgs_dir: str, sample_
         for index in range(len(categories_dirs_names)):
             current_folder = categories_dirs_names[index]
             print(current_folder)
-            current_path = os.path.join(data_dir, current_folder)
+            current_path = os.path.join(root_dir, imgs_dir, current_folder)
             for img_name in os.listdir(current_path):
-                images_info.append(ImageInfo(os.path.join(current_path, img_name), index))
+                img_path = os.path.join(imgs_dir, current_folder, img_name)
+                # Exclude test images from train and validation datasets
+                if img_path not in test_images_paths:
+                    images_info.append(ImageInfo(os.path.join(current_path, img_name), index))
 
         # Shuffle images info
         random.shuffle(images_info)
@@ -67,8 +71,6 @@ def create_dataset(expected_img_size: int, root_dir: str, imgs_dir: str, sample_
         return JpegDataset(images_info[:train_set_size], train_image_transformation), \
                JpegDataset(images_info[train_set_size:], validation_image_transformation)
     else:
-        path_to_submission_template = os.path.join(root_dir, sample_submission_file)
-        test_images_paths = pd.read_csv(path_to_submission_template).Id.values
         test_images_info = [ImageInfo(os.path.join(root_dir, img_path), -1) for img_path in test_images_paths]
 
         return JpegDataset(test_images_info, validation_image_transformation)

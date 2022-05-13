@@ -1,4 +1,5 @@
 import gc
+import pathlib
 
 import numpy as np
 import pandas as pd
@@ -45,6 +46,6 @@ if __name__ == '__main__':
 
     sample_submission['Category'] = [labels_mapping[categories_names[index]] for index in
                                      np.concatenate(submission_results)]
-    sample_submission['Id'] = np.concatenate(img_names_column)
+    sample_submission['Id'] = [pathlib.Path[p].parts[2:] for p in np.concatenate(img_names_column)]
 
     sample_submission.to_csv('flowers_submission.csv', index=False)
