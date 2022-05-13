@@ -1,13 +1,14 @@
-import random
-
-import torch
 import gc
 import os
-from torchvision import transforms
-from jpeg_dataset import JpegDataset, ImageInfo
-from custom_transformations import PerImageNormalization
+import random
+
 import numpy as np
 import pandas as pd
+import torch
+from torchvision import transforms
+
+from custom_transformations import PerImageNormalization
+from jpeg_dataset import JpegDataset, ImageInfo
 from vgg_model_wrapper import VggModelWrapper
 
 # Train model if True. Load model from file otherwise.

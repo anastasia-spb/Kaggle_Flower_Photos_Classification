@@ -1,12 +1,14 @@
-from __future__ import print_function
 from __future__ import division
+from __future__ import print_function
+
+import copy
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
-from torchvision import models
-import copy
 from torch.utils.data import DataLoader
+from torchvision import models
 
 
 class VggModelWrapper:

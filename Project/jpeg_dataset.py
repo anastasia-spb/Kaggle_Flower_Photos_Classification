@@ -1,8 +1,9 @@
-import numpy as np
-from torch.utils.data import Dataset
-from PIL import Image
-from typing import List
 from dataclasses import dataclass
+from typing import List
+
+import numpy as np
+from PIL import Image
+from torch.utils.data import Dataset
 
 
 @dataclass
