@@ -22,7 +22,7 @@ class VggModelWrapper:
         self.num_classes = num_classes
         # Initialize learning parameters
         self.criterion = nn.CrossEntropyLoss()
-        self.num_epochs = 15
+        self.num_epochs = 30
         self.batch_size = 64
         self.__initialize_vgg_model()
         self.__create_optimizer()
